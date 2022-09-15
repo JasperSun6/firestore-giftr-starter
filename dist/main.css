@@ -1,0 +1,206 @@
+:root {
+  --dark-orange: #f5820d;
+  --light-orange: #ffcb2a;
+  --very-light-orange: #ffeb9a;
+  --radii: 0.4rem;
+}
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-weight: 300;
+}
+html {
+  font-size: 20px;
+  font-family: sans-serif;
+}
+body {
+  min-height: 100vh;
+}
+header,
+main {
+  padding: 1rem 4rem;
+}
+header {
+  background-color: var(--light-orange);
+  border-bottom: 0.1rem solid var(--dark-orange);
+}
+header h1 {
+  font-size: 4rem;
+  font-weight: 500;
+  color: #fff;
+  text-shadow: 2px 2px 2px var(--dark-orange);
+}
+header h2 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--dark-orange);
+}
+main {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+main > section {
+  flex-basis: 50%;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+section.ideas {
+  min-height: 100vh;
+  padding-left: 1rem;
+  border-left: 1px solid var(--light-orange);
+}
+section h2 {
+  font-size: 2rem;
+  color: var(--dark-orange);
+  display: flex;
+  justify-content: space-between;
+}
+section h2 > button {
+  margin-right: 4rem;
+  padding: 0.1rem 2rem;
+  border: 1px solid var(--dark-orange);
+  background-color: #fff;
+  color: var(--dark-orange);
+  border-radius: var(--radii);
+  cursor: pointer;
+  -webkit-border-radius: var(--radii);
+  -moz-border-radius: var(--radii);
+  -ms-border-radius: var(--radii);
+  -o-border-radius: var(--radii);
+}
+ul {
+  list-style: none;
+}
+.person-list li {
+  margin: 1rem 0;
+  padding: 0.5rem 2rem;
+  cursor: pointer;
+}
+.person-list li.selected {
+  background-color: var(--light-orange);
+}
+.person-list p.name {
+  font-size: 1.2rem;
+  line-height: 2rem;
+  color: #222;
+}
+.person-list p.dob {
+  font-size: 0.8rem;
+  line-height: 1rem;
+  font-weight: 100;
+  color: #777;
+}
+
+.idea-list li.idea {
+  border: 1px solid #222;
+  border-radius: var(--radii);
+  margin: 1rem 0;
+  display: grid;
+  /*usenamedgridareas*/
+  grid-template-areas: 'tab top' 'tab bottom';
+  grid-template-columns: 1fr 4fr;
+  background-color: var(--very-light-orange);
+  -webkit-border-radius: var(--radii);
+  -moz-border-radius: var(--radii);
+  -ms-border-radius: var(--radii);
+  -o-border-radius: var(--radii);
+}
+.idea-list .idea label {
+  font-size: 0.8rem;
+  line-height: 1rem;
+  font-weight: 100;
+  padding: 0.5rem;
+  color: #222;
+  grid-area: tab;
+  align-self: center;
+}
+.idea-list .idea label:has(input[type='checkbox']:checked) {
+  color: #555;
+}
+.idea-list .idea [type='checkbox'] {
+  accent-color: var(--light-orange);
+}
+.idea-list p.title {
+  font-size: 1.2rem;
+  line-height: 2rem;
+  padding: 0.5rem;
+  color: #222;
+  background-color: #fff;
+  border-top-right-radius: 0.3rem;
+  grid-area: top;
+}
+.idea-list p.location {
+  font-size: 1rem;
+  line-height: 1rem;
+  padding: 0.5rem;
+  font-weight: 100;
+  color: #555;
+  background-color: #fff;
+  border-bottom-right-radius: 0.3rem;
+  grid-area: bottom;
+}
+
+section.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  display: none;
+}
+section.overlay.active {
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
+  background-color: hsla(0, 0%, 0%, 0.8);
+  justify-content: center;
+  align-items: center;
+}
+dialog {
+  background-color: #fff;
+  display: none;
+}
+dialog.active {
+  display: block;
+  margin: auto;
+  width: 80vw;
+  height: 60vh;
+}
+dialog.active h2 {
+  background-color: var(--dark-orange);
+  color: #fff;
+  padding: 1rem 3rem;
+  font-size: 2rem;
+}
+dialog.active p {
+  display: flex;
+  margin: 1rem 3rem;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+dialog.active label {
+  flex-basis: 20ch;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: inherit;
+}
+dialog.active :is(input, button) {
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: inherit;
+}
+dialog button {
+  margin: 0 2rem;
+  padding: 0.1rem 2rem;
+  border: 1px solid var(--dark-orange);
+  background-color: #fff;
+  color: var(--dark-orange);
+  border-radius: var(--radii);
+  cursor: pointer;
+}
+:is(dialog, h2) button:active {
+  background-color: var(--light-orange);
+}
