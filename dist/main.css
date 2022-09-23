@@ -1,7 +1,7 @@
 :root {
-  --dark-orange: #f5820d;
-  --light-orange: #ffcb2a;
-  --very-light-orange: #ffeb9a;
+  --dark-green: #297881;
+  --light-green:#5ed4b6;
+  --very-light-green: #97d5b0;
   --radii: 0.4rem;
 }
 * {
@@ -22,19 +22,19 @@ main {
   padding: 1rem 4rem;
 }
 header {
-  background-color: var(--light-orange);
-  border-bottom: 0.1rem solid var(--dark-orange);
+  background-color: var(--light-green);
+  border-bottom: 0.1rem solid var(--dark-green);
 }
 header h1 {
   font-size: 4rem;
   font-weight: 500;
   color: #fff;
-  text-shadow: 2px 2px 2px var(--dark-orange);
+  text-shadow: 2px 2px 2px var(--dark-green);
 }
 header h2 {
   font-size: 2.5rem;
   font-weight: 300;
-  color: var(--dark-orange);
+  color: var(--dark-green);
 }
 main {
   display: flex;
@@ -50,20 +50,20 @@ main > section {
 section.ideas {
   min-height: 100vh;
   padding-left: 1rem;
-  border-left: 1px solid var(--light-orange);
+  border-left: 1px solid var(--light-green);
 }
 section h2 {
   font-size: 2rem;
-  color: var(--dark-orange);
+  color: var(--dark-green);
   display: flex;
   justify-content: space-between;
 }
 section h2 > button {
   margin-right: 4rem;
   padding: 0.1rem 2rem;
-  border: 1px solid var(--dark-orange);
+  border: 1px solid var(--dark-green);
   background-color: #fff;
-  color: var(--dark-orange);
+  color: var(--dark-green);
   border-radius: var(--radii);
   cursor: pointer;
   -webkit-border-radius: var(--radii);
@@ -75,59 +75,62 @@ ul {
   list-style: none;
 }
 .person-list li {
-  margin: 1rem 0;
-  padding: 0.5rem 2rem;
+  margin: 0rem 0.75rem 0.5rem 0;
+  padding: 0.9rem 1rem;
   cursor: pointer;
+  border-radius: var(--radii);
+  border:1px solid var(--dark-green);
 }
 .person-list li.selected {
-  background-color: var(--light-orange);
+  background-color: var(--very-light-green);
+  
 }
 .person-list p.name {
-  font-size: 1.2rem;
+  font-size: 1.6rem;
   line-height: 2rem;
-  color: #222;
+  color:#2f4e6d;
 }
 .person-list p.dob {
   font-size: 0.8rem;
-  line-height: 1rem;
+  line-height: 1.2rem;
   font-weight: 100;
-  color: #777;
+  color:#52523d;
 }
 
 .idea-list li.idea {
-  border: 1px solid #222;
+  border: 1px solid var(--dark-green);
   border-radius: var(--radii);
-  margin: 1rem 0;
+  margin-bottom: 0.75rem;
   display: grid;
   /*usenamedgridareas*/
   grid-template-areas: 'tab top' 'tab bottom';
   grid-template-columns: 1fr 4fr;
-  background-color: var(--very-light-orange);
+  background-color: var(--very-light-green);
   -webkit-border-radius: var(--radii);
   -moz-border-radius: var(--radii);
   -ms-border-radius: var(--radii);
   -o-border-radius: var(--radii);
 }
 .idea-list .idea label {
-  font-size: 0.8rem;
+  font-size: 1rem;
   line-height: 1rem;
   font-weight: 100;
   padding: 0.5rem;
-  color: #222;
+  color: rgb(222, 17, 17);
   grid-area: tab;
   align-self: center;
 }
 .idea-list .idea label:has(input[type='checkbox']:checked) {
-  color: #555;
+  color: rgb(66, 66, 66);
 }
 .idea-list .idea [type='checkbox'] {
-  accent-color: var(--light-orange);
+  accent-color: var(--light-green);
 }
 .idea-list p.title {
   font-size: 1.2rem;
   line-height: 2rem;
   padding: 0.5rem;
-  color: #222;
+  color: rgb(34, 34, 34);
   background-color: #fff;
   border-top-right-radius: 0.3rem;
   grid-area: top;
@@ -141,6 +144,12 @@ ul {
   background-color: #fff;
   border-bottom-right-radius: 0.3rem;
   grid-area: bottom;
+}
+
+.noGift{
+
+  font-size: 1.2rem;
+  text-align: center;
 }
 
 section.overlay {
@@ -170,20 +179,21 @@ dialog.active {
   height: 60vh;
 }
 dialog.active h2 {
-  background-color: var(--dark-orange);
+  background-color: var(--dark-green);
   color: #fff;
   padding: 1rem 3rem;
   font-size: 2rem;
 }
 dialog.active p {
   display: flex;
+  color:var(--dark-green);
   margin: 1rem 3rem;
   justify-content: flex-start;
   align-items: flex-start;
 }
 dialog.active label {
-  flex-basis: 20ch;
-  font-size: 1rem;
+  flex-basis: 13ch;
+  font-size: 1.2rem;
   font-family: inherit;
   font-weight: inherit;
 }
@@ -195,12 +205,58 @@ dialog.active :is(input, button) {
 dialog button {
   margin: 0 2rem;
   padding: 0.1rem 2rem;
-  border: 1px solid var(--dark-orange);
+  border: 1px solid var(--dark-green);
   background-color: #fff;
-  color: var(--dark-orange);
+  color: var(--dark-green);
   border-radius: var(--radii);
   cursor: pointer;
 }
 :is(dialog, h2) button:active {
-  background-color: var(--light-orange);
+  background-color: var(--light-green);
 }
+
+/* From uiverse.io */
+button {
+  --color: var(--dark-green);
+  font-family: inherit;
+  display: inline-block;
+  width: 8em;
+  height: 2.6em;
+  line-height: 2.5em;
+  margin: 20px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--color);
+  transition: color .5s;
+  z-index: 1;
+  font-size: 17px;
+  border-radius: 6px;
+  font-weight: 500;
+  color: var(--color);
+ }
+ 
+ button:before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  background: var(--color);
+  height: 150px;
+  width: 200px;
+  border-radius: 50%;
+ }
+ 
+ button:hover {
+  color: #fff;
+ }
+ 
+ button:before {
+  top: 100%;
+  left: 100%;
+  transition: all .5s;
+ }
+ 
+ button:hover:before {
+  top: -30px;
+  left: -30px;
+ }
+ 
