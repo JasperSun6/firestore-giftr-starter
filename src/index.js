@@ -6,13 +6,13 @@ import {
   where,
   doc,
   getDocs,
-  getDoc,
   addDoc,
-  setDoc,
-  orderBy,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
 } from "firebase/firestore";
 
-//TODO: replace this config object with your own
+/* Firebase Configurations */
 const firebaseConfig = {
   apiKey: "AIzaSyD5QvBtCjpjbXqv7dxNVCKcJmH2RSJCgyw",
   authDomain: "fire-giftr-ebd49.firebaseapp.com",
@@ -22,13 +22,16 @@ const firebaseConfig = {
   appId: "1:80979594762:web:76effb0d1a313ba1e8d9f3",
   measurementId: "G-YN8PP7ZPFE",
 };
-//TODO: replace this config object with your own
 
-// Initialize Firebase
+/* Initialize Firebase */
 const app = initializeApp(firebaseConfig);
-// get a reference to the database
+/* Get a reference to the database */
 const db = getFirestore(app);
-const people = [];
+
+let people = [];
+let ideas = [];
+let selectedPersonId = null;
+let selectedIdeaId = null;
 const months = [
   "January",
   "February",
@@ -43,9 +46,11 @@ const months = [
   "November",
   "December",
 ];
-let selectedPersonId = null;
 
+/* Listeners */
 document.addEventListener("DOMContentLoaded", () => {
+  peopleSnapshot();
+
   //set up the dom events
   document
     .getElementById("btnCancelPerson")
@@ -58,243 +63,230 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("btnAddPerson")
     .addEventListener("click", showOverlay);
-  document.getElementById("btnAddIdea").addEventListener("click", showOverlay);
 
   document
     .getElementById("btnSavePerson")
     .addEventListener("click", savePerson);
+
+  document.getElementById("btnAddIdea").addEventListener("click", showOverlay);
   document.getElementById("btnSaveIdea").addEventListener("click", saveIdea);
 
   document
     .querySelector(".person-list")
     .addEventListener("click", handleSelectPerson);
 
-  loadInitialData();
-
-  //TODO: add the `onSnapshot` listener
+  document
+    .querySelector(".idea-list")
+    .addEventListener("click", handleSelectIdea);
 });
 
-function loadInitialData() {
-  //load the people collection and display
-  getPeople();
-  //select the first person on the list
-  //load the gift-ideas collection and display
-}
+const q = query(collection(db, "people"));
 
-async function getPeople() {
-  //call this from DOMContentLoaded init function
-  //the db variable is the one created by the getFirestore(app) call.
-  const querySnapshot = await getDocs(collection(db, "people"));
-  querySnapshot.forEach((doc) => {
-    //every `doc` object has a `id` property that holds the `_id` value from Firestore.
-    //every `doc` object has a doc() method that gives you a JS object with all the properties
-    const data = doc.data();
-    const id = doc.id;
-    people.push({ id, ...data });
+const peopleSnapshot = () => {
+  onSnapshot(q, (snapshot) => {
+    people = [];
+    ideas = [];
+    snapshot.docs.map((doc) => {
+      const data = doc.data();
+      const personId = doc.id;
+      people.push({ personId, ...data });
+      return doc.data();
+    });
+    buildPeople(people);
   });
-  //select the first person from the list of people
-  selectedPersonId = buildPeople(people);
-  //select the matching <li> by clicking on a list item
-  let li = document.querySelector(`[data-id="${selectedPersonId}"]`);
-  // console.log(li);
-  li.click();
+  (err) => {
+    alert(err);
+  };
+};
+
+async function getIdeas(id) {
+  ideas = [];
+  const personRef = doc(collection(db, "people"), id);
+  const ideaCollectionRef = collection(db, "gift-ideas");
+  const docs = query(ideaCollectionRef, where("person-id", "==", personRef));
+  const gifts = await getDocs(docs);
+  gifts.forEach((doc) => {
+    const data = doc.data();
+    const giftId = doc.id;
+    ideas.push({ giftId, ...data });
+  });
+  buildIdeas(ideas);
+  (err) => {
+    alert(err);
+  };
 }
 
 function buildPeople(people) {
   //build the HTML
   const ul = document.querySelector("ul.person-list");
+  ul.innerHTML = "";
   //replace the old ul contents with the new.
   ul.innerHTML = people
     .map((person) => {
       const dob = `${months[person["birth-month"] - 1]} ${person["birth-day"]}`;
-      // console.log(`show ${person.id}`);
       //Use the number of the birth-month less 1 as the index for the months array
-      return `<li data-id="${person.id}" class="person">
+      return `<li data-id="${person.personId}" class="person">
               <p class="name">${person.name}</p>
               <p class="dob">${dob}</p>
+              <button id="editPersonBtn">Edit</button>
+              <button id="deletePersonBth">Delete</button>
             </li>`;
     })
     .join("");
   // return the first person's id
   let selected = people[0].id;
-  // console.log(selected);
   return selected;
-}
-
-function showPerson(person) {
-  //add the newly created person OR update if person exists
-  const ul = document.querySelector("ul.person-list");
-  const dob = `${months[person["birth-month"] - 1]} ${person["birth-day"]}`;
-  ul.innerHTML += `<li data-id="${person.id}" class="person">
-    <p class="name">${person.name}</p>
-    <p class="dob">${dob}</p>
-  </li>`;
-  //add to people array
-  people.push(person);
-}
-
-function handleSelectPerson(ev) {
-  //ev.target; - could be the button OR anything in the ul.
-  const li = ev.target.closest(".person"); //see if there is a parent <li class="person">
-  // console.log(`${li.getAttribute('data-id')} was clicked`);
-  const id = li ? li.getAttribute("data-id") : null; // if li exists then the user clicked inside an <li>
-
-  if (id) {
-    //user clicked inside li
-    selectedPersonId = id;
-    //did they click the li content OR an edit button OR a delete button?
-    if (ev.target.classList.contains("edit")) {
-      //EDIT the doc using the id to get a docRef
-      //show the dialog form to EDIT the doc (same form as ADD)
-      //Load all the Person document details into the form from docRef
-    } else if (ev.target.classList.contains("delete")) {
-      //DELETE the doc using the id to get a docRef
-      //do a confirmation before deleting
-    } else {
-      //content inside the <li> but NOT a <button> was clicked
-      //remove any previously selected styles
-      document.querySelector("li.selected")?.classList.remove("selected");
-      //Highlight the newly selected person
-      li.classList.add("selected");
-      //and load all the gift idea documents for that person
-      getIdeas(id);
-    }
-  } else {
-    //clicked a button not inside <li class="person">
-    //Show the dialog form to ADD the doc (same form as EDIT)
-    //showOverlay function can be called from here or with the click listener in DOMContentLoaded, not both
-  }
-}
-
-async function getIdeas(id) {
-  //the person-id property in gift-ideas will be like `/people/lasdjkflaskdfjsdlfk`
-  //and it is a REFERENCE not a string. So, we use a reference to the person object
-  const personRef = doc(collection(db, "people"), id);
-  const ideaCollectionRef = collection(db, "gift-ideas"); //collection we want to query
-  const docs = query(
-    ideaCollectionRef,
-    where("person-id", "==", personRef),
-    orderBy("birth-month")
-  );
-  const querySnapshot = await getDocs(docs);
-  const ideas = [];
-  querySnapshot.forEach((doc) => {
-    //every `doc` object has a `id` property that holds the `_id` value from Firestore.
-    //every `doc` object has a doc() method that gives you a JS object with all the properties
-    const data = doc.data();
-    const id = doc.id;
-    //person_id is a reference type
-    //we want the actual id string in our object use id to get the _id
-    // console.log(data['person-id']);
-    ideas.push({
-      id,
-      title: data.title,
-      location: data.location,
-      bought: data.bought,
-      person_id: data["person-id"].id,
-      person_ref: data["person-id"],
-    });
-  });
-  //now build the HTML from the ideas array
-  buildIdeas(ideas);
 }
 
 function buildIdeas(ideas) {
   const ul = document.querySelector(".idea-list");
+  ul.innerHTML = "";
+
   if (ideas.length) {
     ul.innerHTML = ideas
       .map((idea) => {
-        // console.log(`show ${idea.id}`);
-        return `<li class="idea" data-id="${idea.id}">
-                <label for="chk-${idea.id}"
-                  ><input type="checkbox" id="chk-${idea.id}" /> Bought</label
+        console.log(idea);
+        return `<li class="idea" data-id="${idea.giftId}">
+                <label for="chk-${idea.giftId}"
+                  ><input type="checkbox" id="chk-${idea.giftId} class="bought" /> Bought</label
                 >
-                <p class="title">${idea.title}</p>
+                <p class="title">${idea.idea}</p>
                 <p class="location">${idea.location}</p>
+                <button id="editIdeaBtn">Edit</button>
+                <button id="deleteIdeaBth">Delete</button>
               </li>`;
       })
       .join("");
   } else {
     ul.innerHTML =
-      '<li class="idea"><p></p><p>No Gift Ideas for selected person.</p></li>'; //clear in case there are no records to shows
+      '<li class="idea"><p></p><p  class="noGift">No gift Ideas for selected person.</p></li>';
   }
-  //add listener for 'change' or 'input' event on EVERY checkbox '.idea [type="checkbox"]'
-  // which will call a function to update the `bought` value for the document
+  ideas = [];
 }
 
-async function savePerson() {
-  //take the information from the dialog, save as an object, push to firestore
+function handleSelectPerson(ev) {
+  const li = ev.target.closest(".person"); //see if there is a parent <li class="person">
+  const id = li.getAttribute("data-id"); // if li exists then the user clicked inside an <li>
+
+  //user clicked inside li
+  selectedPersonId = id;
+  if (ev.target.id === "editPersonBtn") {
+    showOverlay(ev);
+  } else if (ev.target.id === "deletePersonBth") {
+    let result = confirm("Are you sure you want to delete this person?");
+    if (result) {
+      let ref = doc(db, "people", `${id}`);
+      deleteDoc(ref).catch((err) => console.warn(err));
+    }
+  } else {
+    document.querySelector("li.selected")?.classList.remove("selected");
+    li.classList.add("selected");
+    getIdeas(id);
+  }
+}
+
+function handleSelectIdea(ev) {
+  selectedIdeaId = ev.target.parentElement.getAttribute("data-id");
+  if (ev.target.id === "editIdeaBtn") {
+    showOverlay(ev);
+  } else if (ev.target.id === "deleteIdeaBth") {
+    let result = confirm("Are you sure you want to delete this idea?");
+    if (result) {
+      let ref = doc(db, "gift-ideas", `${selectedIdeaId}`);
+      deleteDoc(ref).catch((err) => console.warn(err));
+    }
+  }
+  getIdeas(selectedPersonId);
+}
+
+const editPerson = async (selectedPersonId, person) => {
+  let ref = doc(db, "people", `${selectedPersonId}`);
+  await updateDoc(ref, person);
+};
+
+const editIdea = async (selectedIdeaId, idea) => {
+  console.log(selectedIdeaId);
+  let ref = doc(db, "gift-ideas", `${selectedIdeaId}`);
+  await updateDoc(ref, idea);
+};
+
+async function savePerson(ev) {
+  let id = selectedPersonId;
   let name = document.getElementById("name").value;
   let month = document.getElementById("month").value;
   let day = document.getElementById("day").value;
-  if (!name || !month || !day) return; //form needs more info
+  if (!name || !month || !day) return;
   const person = {
     name,
     "birth-month": month,
     "birth-day": day,
   };
-  try {
+  if (ev.target.closest(".add")) {
     const docRef = await addDoc(collection(db, "people"), person);
-    console.log("Document written with ID: ", docRef.id);
-    //1. clear the form fields
-    document.getElementById("name").value = "";
-    document.getElementById("month").value = "";
-    document.getElementById("day").value = "";
-    //2. hide the dialog and the overlay by clicking on overlay
-    document.querySelector(".overlay").click();
-    //3. TODO: display a message to the user about success
 
+    document.getElementById("name").value = "";
+    document.getElementById("month").value = "1";
+    document.getElementById("day").value = "1";
+    document.querySelector(".overlay").click();
     person.id = docRef.id;
-    //4. ADD the new HTML to the <ul> using the new object
-    showPerson(person);
-  } catch (err) {
-    console.error("Error adding document: ", err);
-    //do you want to stay on the dialog?
-    //display a mesage to the user about the problem
+  } else if (ev.target.closest(".edit")) {
+    await editPerson(id, {
+      name: name,
+      "birth-month": month,
+      "birth-day": day,
+    });
+    document.getElementById("name").value = "";
+    document.getElementById("month").value = "1";
+    document.getElementById("day").value = "1";
+    hideOverlay(ev);
   }
-  //TODO: update this function to work as an UPDATE method too
 }
 
-async function saveIdea() {
-  //take the information from the dialog, save as an object, push to firestore
-  let title = document.getElementById("title").value;
-  let location = document.getElementById("location").value;
-  if (!title || !location) return; //form needs more info
-  //a new idea needs a reference to the person
-  const personRef = doc(db, `/people/${selectedPersonId}`);
+async function saveIdea(ev) {
+  let overlayTitle = document.querySelector("#dlgIdea h2").innerHTML;
+  const title = document.getElementById("title").value;
+  const location = document.getElementById("location").value;
+  const personRef = doc(
+    document.querySelector("#dlgIdea h2").innerHTMLdb,
+    `/people/${selectedPersonId}`
+  );
+  if (!title || !location || !personRef) return;
+
   const idea = {
-    title,
+    idea: title,
     location,
     "person-id": personRef,
+    bought: false,
   };
+  const giftRef = collection(db, "gift-ideas", idea);
 
-  try {
-    const docRef = await addDoc(collection(db, "gift-ideas"), idea);
-    console.log("Document written with ID: ", docRef.id);
-    idea.id = docRef.id;
-    //1. clear the form fields
+  if (overlayTitle === "Add Gift Idea") {
+    await addDoc(giftRef, idea);
     document.getElementById("title").value = "";
     document.getElementById("location").value = "";
-    //2. hide the dialog and the overlay by clicking on overlay
     document.querySelector(".overlay").click();
-    //3. TODO: display a message to the user about success
-
-    //4. ADD the new HTML to the <ul> using the new object
-    //just recall the method to show all ideas for the selected person
     getIdeas(selectedPersonId);
-  } catch (err) {
-    console.error("Error adding document: ", err);
-    //do you want to stay on the dialog?
-    //display a mesage to the user about the problem
+  } else if (overlayTitle === "Edit Idea") {
+    await editIdea(selectedIdeaId, {
+      idea: title,
+      location: location,
+      "person-id": personRef,
+    });
+    document.getElementById("title").value = "";
+    document.getElementById("location").value = "";
+    hideOverlay(ev);
+    getIdeas(selectedPersonId);
   }
-  //TODO: update this function to work as an UPDATE method too
 }
 
 function hideOverlay(ev) {
   ev.preventDefault();
+  //close dialog after cancel || save data
   if (
     !ev.target.classList.contains("overlay") &&
+    ev.target.id != "btnSaveIdea" &&
     ev.target.id != "btnCancelIdea" &&
+    ev.target.id != "btnSavePerson" &&
     ev.target.id != "btnCancelPerson"
   )
     return;
@@ -304,9 +296,37 @@ function hideOverlay(ev) {
     .querySelectorAll(".overlay dialog")
     .forEach((dialog) => dialog.classList.remove("active"));
 }
+
 function showOverlay(ev) {
   ev.preventDefault();
   document.querySelector(".overlay").classList.add("active");
-  const id = ev.target.id === "btnAddPerson" ? "dlgPerson" : "dlgIdea";
-  document.getElementById(id).classList.add("active");
+  //check dialogs people || ideas
+  const id =
+    ev.target.id === "btnAddPerson" || ev.target.id === "editPersonBtn"
+      ? "dlgPerson"
+      : "dlgIdea";
+
+  document.getElementById(id).className = "active";
+
+  //check button actions
+  //add person
+  if (ev.target.id === "btnAddPerson") {
+    document.getElementById(id).classList.add("active", "add");
+    document.querySelector("#dlgPerson h2").textContent = "Add Person";
+  }
+  //edit person
+  if (ev.target.id === "editPersonBtn") {
+    document.getElementById(id).classList.add("active", "edit");
+    document.querySelector("#dlgPerson h2").textContent = "Edit Person";
+  }
+  //add idea
+  if (ev.target.id === "btnAddIdea") {
+    document.getElementById(id).classList.add("active", "add");
+    document.querySelector("#dlgIdea h2").textContent = "Add Idea";
+  }
+  //edit idea
+  if (ev.target.id === "editIdeaBtn") {
+    document.getElementById(id).classList.add("active", "edit");
+    document.querySelector("#dlgIdea h2").textContent = "Edit Idea";
+  }
 }
