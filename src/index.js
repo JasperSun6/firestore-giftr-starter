@@ -50,6 +50,7 @@ const months = [
 /* Listeners */
 document.addEventListener("DOMContentLoaded", () => {
   peopleSnapshot();
+  ideasSnapshot();
 
   //set up the dom events
   document
@@ -80,12 +81,10 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", handleSelectIdea);
 });
 
-const q = query(collection(db, "people"));
-
+//people onSnapShot
 const peopleSnapshot = () => {
-  onSnapshot(q, (snapshot) => {
+  onSnapshot(collection(db, "people"), (snapshot) => {
     people = [];
-    ideas = [];
     snapshot.docs.map((doc) => {
       const data = doc.data();
       const personId = doc.id;
@@ -99,23 +98,24 @@ const peopleSnapshot = () => {
   };
 };
 
-async function getIdeas(id) {
-  ideas = [];
-  const personRef = doc(collection(db, "people"), id);
-  const ideaCollectionRef = collection(db, "gift-ideas");
-  const docs = query(ideaCollectionRef, where("person-id", "==", personRef));
-  const gifts = await getDocs(docs);
-  gifts.forEach((doc) => {
-    const data = doc.data();
-    const giftId = doc.id;
-    ideas.push({ giftId, ...data });
+//idea onSnapShot
+const ideasSnapshot = () => {
+  onSnapshot(collection(db, "gift-ideas"), (snapshot) => {
+    ideas = [];
+    snapshot.docs.map((doc) => {
+      const data = doc.data();
+      const giftId = doc.id;
+      ideas.push({ giftId, ...data });
+      return doc.data();
+    });
+    buildIdeas(ideas);
   });
-  buildIdeas(ideas);
   (err) => {
     alert(err);
   };
-}
+};
 
+//build people list
 function buildPeople(people) {
   //build the HTML
   const ul = document.querySelector("ul.person-list");
@@ -133,11 +133,9 @@ function buildPeople(people) {
             </li>`;
     })
     .join("");
-  // return the first person's id
-  let selected = people[0].id;
-  return selected;
 }
 
+//build idea list
 function buildIdeas(ideas) {
   const ul = document.querySelector(".idea-list");
   ul.innerHTML = "";
@@ -145,11 +143,10 @@ function buildIdeas(ideas) {
   if (ideas.length) {
     ul.innerHTML = ideas
       .map((idea) => {
-        console.log(idea);
+        if (idea["person-id"].id != selectedPersonId) return;
         return `<li class="idea" data-id="${idea.giftId}">
-                <label for="chk-${idea.giftId}"
-                  ><input type="checkbox" id="chk-${idea.giftId} class="bought" /> Bought</label
-                >
+                <label for="chk-${idea.giftId}">
+                <input type="checkbox" id="chk-${idea.giftId} class="bought" /> Bought</label>
                 <p class="title">${idea.idea}</p>
                 <p class="location">${idea.location}</p>
                 <button id="editIdeaBtn">Edit</button>
@@ -164,11 +161,10 @@ function buildIdeas(ideas) {
   ideas = [];
 }
 
+//edit or delete selected person
 function handleSelectPerson(ev) {
-  const li = ev.target.closest(".person"); //see if there is a parent <li class="person">
-  const id = li.getAttribute("data-id"); // if li exists then the user clicked inside an <li>
-
-  //user clicked inside li
+  const li = ev.target.closest(".person");
+  const id = li.getAttribute("data-id");
   selectedPersonId = id;
   if (ev.target.id === "editPersonBtn") {
     showOverlay(ev);
@@ -181,10 +177,11 @@ function handleSelectPerson(ev) {
   } else {
     document.querySelector("li.selected")?.classList.remove("selected");
     li.classList.add("selected");
-    getIdeas(id);
   }
+  buildIdeas(ideas);
 }
 
+//edit or delete selected idea
 function handleSelectIdea(ev) {
   selectedIdeaId = ev.target.parentElement.getAttribute("data-id");
   if (ev.target.id === "editIdeaBtn") {
@@ -196,20 +193,21 @@ function handleSelectIdea(ev) {
       deleteDoc(ref).catch((err) => console.warn(err));
     }
   }
-  getIdeas(selectedPersonId);
 }
 
+// edit person
 const editPerson = async (selectedPersonId, person) => {
   let ref = doc(db, "people", `${selectedPersonId}`);
   await updateDoc(ref, person);
 };
 
+//edit idea
 const editIdea = async (selectedIdeaId, idea) => {
-  console.log(selectedIdeaId);
   let ref = doc(db, "gift-ideas", `${selectedIdeaId}`);
   await updateDoc(ref, idea);
 };
 
+//save person after add or edit
 async function savePerson(ev) {
   let id = selectedPersonId;
   let name = document.getElementById("name").value;
@@ -223,7 +221,6 @@ async function savePerson(ev) {
   };
   if (ev.target.closest(".add")) {
     const docRef = await addDoc(collection(db, "people"), person);
-
     document.getElementById("name").value = "";
     document.getElementById("month").value = "1";
     document.getElementById("day").value = "1";
@@ -242,31 +239,25 @@ async function savePerson(ev) {
   }
 }
 
+//save idea after add or edit
 async function saveIdea(ev) {
-  let overlayTitle = document.querySelector("#dlgIdea h2").innerHTML;
-  const title = document.getElementById("title").value;
-  const location = document.getElementById("location").value;
-  const personRef = doc(
-    document.querySelector("#dlgIdea h2").innerHTMLdb,
-    `/people/${selectedPersonId}`
-  );
+  let title = document.getElementById("title").value;
+  let location = document.getElementById("location").value;
+  const personRef = doc(db, "people", `${selectedPersonId}`);
   if (!title || !location || !personRef) return;
-
   const idea = {
     idea: title,
     location,
     "person-id": personRef,
     bought: false,
   };
-  const giftRef = collection(db, "gift-ideas", idea);
-
-  if (overlayTitle === "Add Gift Idea") {
-    await addDoc(giftRef, idea);
+  if (ev.target.closest(".add")) {
+    const docRef = await addDoc(collection(db, "gift-ideas"), idea);
     document.getElementById("title").value = "";
     document.getElementById("location").value = "";
     document.querySelector(".overlay").click();
-    getIdeas(selectedPersonId);
-  } else if (overlayTitle === "Edit Idea") {
+    idea.id = docRef.id;
+  } else if (ev.target.closest(".edit")) {
     await editIdea(selectedIdeaId, {
       idea: title,
       location: location,
@@ -275,28 +266,10 @@ async function saveIdea(ev) {
     document.getElementById("title").value = "";
     document.getElementById("location").value = "";
     hideOverlay(ev);
-    getIdeas(selectedPersonId);
   }
 }
 
-function hideOverlay(ev) {
-  ev.preventDefault();
-  //close dialog after cancel || save data
-  if (
-    !ev.target.classList.contains("overlay") &&
-    ev.target.id != "btnSaveIdea" &&
-    ev.target.id != "btnCancelIdea" &&
-    ev.target.id != "btnSavePerson" &&
-    ev.target.id != "btnCancelPerson"
-  )
-    return;
-
-  document.querySelector(".overlay").classList.remove("active");
-  document
-    .querySelectorAll(".overlay dialog")
-    .forEach((dialog) => dialog.classList.remove("active"));
-}
-
+//show overlay
 function showOverlay(ev) {
   ev.preventDefault();
   document.querySelector(".overlay").classList.add("active");
@@ -329,4 +302,23 @@ function showOverlay(ev) {
     document.getElementById(id).classList.add("active", "edit");
     document.querySelector("#dlgIdea h2").textContent = "Edit Idea";
   }
+}
+
+//hide overlay
+function hideOverlay(ev) {
+  ev.preventDefault();
+  //close dialog after cancel || save data
+  if (
+    !ev.target.classList.contains("overlay") &&
+    ev.target.id != "btnSaveIdea" &&
+    ev.target.id != "btnCancelIdea" &&
+    ev.target.id != "btnSavePerson" &&
+    ev.target.id != "btnCancelPerson"
+  )
+    return;
+
+  document.querySelector(".overlay").classList.remove("active");
+  document
+    .querySelectorAll(".overlay dialog")
+    .forEach((dialog) => dialog.classList.remove("active"));
 }
