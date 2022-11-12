@@ -1,69 +1,21 @@
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   onAuthStateChanged,
   GithubAuthProvider,
+  signInWithPopup,
+  setPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import {
   getFirestore,
   collection,
-  query,
-  where,
   doc,
-  getDocs,
   addDoc,
   updateDoc,
   deleteDoc,
   onSnapshot,
 } from "firebase/firestore";
-
-const auth = getAuth(app);
-
-const provider = new GithubAuthProvider();
-
-provider.setCustomParameters({
-  allow_signup: "true", //let the user signup for a Github account through the interface
-});
-
-//pass in your auth object plus the email and password strings
-createUserWithEmailAndPassword(auth, email, password)
-  .then((userCredential) => {
-    // Signed in
-    const user = userCredential.user;
-    // ...
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    // ..
-  });
-
-//pass in your auth object plus the email and password strings
-signInWithEmailAndPassword(auth, email, password)
-  .then((userCredential) => {
-    // Signed in
-    const user = userCredential.user;
-    // ...
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-  });
-
-//track when the user logs in or out
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // User is signed in, see docs for a list of available properties
-    // https://firebase.google.com/docs/reference/js/firebase.User
-    const uid = user.uid;
-    // ...
-  } else {
-    // User is signed out
-    // ...
-  }
-});
 
 /* Firebase Configurations */
 const firebaseConfig = {
@@ -80,6 +32,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 /* Get a reference to the database */
 const db = getFirestore(app);
+
+const auth = getAuth(app);
+const provider = new GithubAuthProvider();
+
+setPersistence(auth, browserSessionPersistence)
+  // .then(() => {
+  //   // Existing and future Auth states are now persisted in the current
+  //   // session only. Closing the window would clear any existing state even
+  //   // if a user forgets to sign out.
+  //   const provider = new GithubAuthProvider();
+  //   // ...
+  //   // New sign-in will be persisted with session persistence.
+  //   signInWithPopup(auth, provider)
+  //     .then((user) => {})
+  //     .catch((err) => {});
+  //   //return the call to your desired login method
+  // })
+  .catch((error) => {
+    // Handle Errors here.
+    const errorCode = error.code;
+    const errorMessage = error.message;
+  });
 
 let people = [];
 let ideas = [];
@@ -102,9 +76,6 @@ const months = [
 
 /* Listeners */
 document.addEventListener("DOMContentLoaded", () => {
-  peopleSnapshot();
-  ideasSnapshot();
-
   //set up the dom events
   document
     .getElementById("btnCancelPerson")
@@ -132,7 +103,75 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .querySelector(".idea-list")
     .addEventListener("click", handleSelectIdea);
+  const signButton = document.querySelector(".signButton");
+  //track when the user logs in or out
+
+  signButton.addEventListener("click", () => {
+    console.log(auth.currentUser);
+    if (auth.currentUser) {
+      console.log("SIGN USER OUT");
+      auth.signOut().catch((err) => console.warn(err));
+      buildPeople([]);
+      buildIdeas([]);
+      const ul = document.querySelector(".idea-list");
+      ul.innerHTML = "";
+    } else {
+      attemptLogin();
+    }
+  });
 });
+
+//let the user signup for a Github account through the interface
+provider.setCustomParameters({
+  allow_signup: "true",
+});
+
+auth.onAuthStateChanged(function (user) {
+  const signButton = document.querySelector(".signButton");
+
+  if (user) {
+    console.log("user logged in");
+    signButton.innerHTML = "Sign Out";
+
+    peopleSnapshot();
+    ideasSnapshot();
+  } else {
+    if (!auth.currentUser) {
+      console.log("user logged out");
+      signButton.innerHTML = "Sign In";
+    }
+  }
+});
+// sign in popup
+function attemptLogin() {
+  //try to login with the global auth and provider objects
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      //IF YOU USED GITHUB PROVIDER
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+      // The signed-in user info.
+      const user = result.user;
+      // ...
+    })
+    .catch((error) => {
+      // Handle Errors here.
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      // The email of the user's account used.
+      const email = error.customData.email;
+      // The AuthCredential type that was used.
+      const credential = GithubAuthProvider.credentialFromError(error);
+    });
+}
+
+// setPersistence(auth, browserSessionPersistence).then(() => {
+//   const provider = new GithubAuthProvider();
+
+//   // signInWithPopup(auth, provider).catch((error) => {
+//   //   console.log(error);
+//   // });
+// });
 
 //people onSnapShot
 const peopleSnapshot = () => {
@@ -174,6 +213,7 @@ function buildPeople(people) {
   const ul = document.querySelector("ul.person-list");
   ul.innerHTML = "";
   //replace the old ul contents with the new.
+  console.log(people);
   ul.innerHTML = people
     .map((person) => {
       const dob = `${months[person["birth-month"] - 1]} ${person["birth-day"]}`;
