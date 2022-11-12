@@ -4,6 +4,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
+  GithubAuthProvider,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -19,6 +20,12 @@ import {
 } from "firebase/firestore";
 
 const auth = getAuth(app);
+
+const provider = new GithubAuthProvider();
+
+provider.setCustomParameters({
+  allow_signup: "true", //let the user signup for a Github account through the interface
+});
 
 //pass in your auth object plus the email and password strings
 createUserWithEmailAndPassword(auth, email, password)
