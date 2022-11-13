@@ -91,12 +91,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // sign in / sign out button
   const signButton = document.querySelector(".signButton");
+
   //track when the user logs in or out
   signButton.addEventListener("click", () => {
     if (auth.currentUser) {
-      // hide the sign in button
-      document.getElementById("btnAddPerson").style.visibility = "hidden";
-      document.getElementById("btnAddIdea").style.visibility = "hidden";
+      // // hide the sign in button
+      // document.getElementById("btnAddPerson").style.visibility = "hidden";
+      // document.getElementById("btnAddIdea").style.visibility = "hidden";
       auth.signOut().catch((err) => console.warn(err));
       buildPeople([]);
       buildIdeas([]);
@@ -104,9 +105,9 @@ document.addEventListener("DOMContentLoaded", () => {
       ul.innerHTML = "";
     } else {
       attemptLogin();
-      // show the sign in button
-      document.getElementById("btnAddPerson").style.visibility = "visible";
-      document.getElementById("btnAddIdea").style.visibility = "visible";
+      // // show the sign in button
+      // document.getElementById("btnAddPerson").style.visibility = "visible";
+      // document.getElementById("btnAddIdea").style.visibility = "visible";
     }
   });
 });
@@ -121,11 +122,18 @@ auth.onAuthStateChanged(function (user) {
   const signButton = document.querySelector(".signButton");
 
   if (user) {
+    // show the sign in button
+    document.getElementById("btnAddPerson").style.visibility = "visible";
+    document.getElementById("btnAddIdea").style.visibility = "visible";
+
     signButton.innerHTML = "Sign Out";
     peopleSnapshot();
     ideasSnapshot();
   } else {
     if (!auth.currentUser) {
+      // hide the sign in button
+      document.getElementById("btnAddPerson").style.visibility = "hidden";
+      document.getElementById("btnAddIdea").style.visibility = "hidden";
       signButton.innerHTML = "Sign In";
     }
   }

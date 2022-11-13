@@ -262,4 +262,7 @@ button {
   top: -30px;
   left: -30px;
  }
- 
+
+ #btnAddPerson,#btnAddIdea{
+  visibility: hidden;
+ }
