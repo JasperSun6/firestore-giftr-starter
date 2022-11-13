@@ -1,12 +1,12 @@
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
-  onAuthStateChanged,
   GithubAuthProvider,
   signInWithPopup,
   setPersistence,
   browserSessionPersistence,
 } from "firebase/auth";
+
 import {
   getFirestore,
   collection,
@@ -36,24 +36,9 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GithubAuthProvider();
 
-setPersistence(auth, browserSessionPersistence)
-  // .then(() => {
-  //   // Existing and future Auth states are now persisted in the current
-  //   // session only. Closing the window would clear any existing state even
-  //   // if a user forgets to sign out.
-  //   const provider = new GithubAuthProvider();
-  //   // ...
-  //   // New sign-in will be persisted with session persistence.
-  //   signInWithPopup(auth, provider)
-  //     .then((user) => {})
-  //     .catch((err) => {});
-  //   //return the call to your desired login method
-  // })
-  .catch((error) => {
-    // Handle Errors here.
-    const errorCode = error.code;
-    const errorMessage = error.message;
-  });
+setPersistence(auth, browserSessionPersistence).catch((error) => {
+  console.log(error);
+});
 
 let people = [];
 let ideas = [];
@@ -103,13 +88,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .querySelector(".idea-list")
     .addEventListener("click", handleSelectIdea);
+
+  // sign in / sign out button
   const signButton = document.querySelector(".signButton");
   //track when the user logs in or out
-
   signButton.addEventListener("click", () => {
-    console.log(auth.currentUser);
     if (auth.currentUser) {
-      console.log("SIGN USER OUT");
+      // hide the sign in button
+      document.getElementById("btnAddPerson").style.visibility = "hidden";
+      document.getElementById("btnAddIdea").style.visibility = "hidden";
       auth.signOut().catch((err) => console.warn(err));
       buildPeople([]);
       buildIdeas([]);
@@ -117,6 +104,9 @@ document.addEventListener("DOMContentLoaded", () => {
       ul.innerHTML = "";
     } else {
       attemptLogin();
+      // show the sign in button
+      document.getElementById("btnAddPerson").style.visibility = "visible";
+      document.getElementById("btnAddIdea").style.visibility = "visible";
     }
   });
 });
@@ -126,22 +116,21 @@ provider.setCustomParameters({
   allow_signup: "true",
 });
 
+// auth state change
 auth.onAuthStateChanged(function (user) {
   const signButton = document.querySelector(".signButton");
 
   if (user) {
-    console.log("user logged in");
     signButton.innerHTML = "Sign Out";
-
     peopleSnapshot();
     ideasSnapshot();
   } else {
     if (!auth.currentUser) {
-      console.log("user logged out");
       signButton.innerHTML = "Sign In";
     }
   }
 });
+
 // sign in popup
 function attemptLogin() {
   //try to login with the global auth and provider objects
@@ -152,26 +141,11 @@ function attemptLogin() {
       const token = credential.accessToken;
       // The signed-in user info.
       const user = result.user;
-      // ...
     })
     .catch((error) => {
-      // Handle Errors here.
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      // The email of the user's account used.
-      const email = error.customData.email;
-      // The AuthCredential type that was used.
-      const credential = GithubAuthProvider.credentialFromError(error);
+      console.log(error);
     });
 }
-
-// setPersistence(auth, browserSessionPersistence).then(() => {
-//   const provider = new GithubAuthProvider();
-
-//   // signInWithPopup(auth, provider).catch((error) => {
-//   //   console.log(error);
-//   // });
-// });
 
 //people onSnapShot
 const peopleSnapshot = () => {
@@ -213,7 +187,6 @@ function buildPeople(people) {
   const ul = document.querySelector("ul.person-list");
   ul.innerHTML = "";
   //replace the old ul contents with the new.
-  console.log(people);
   ul.innerHTML = people
     .map((person) => {
       const dob = `${months[person["birth-month"] - 1]} ${person["birth-day"]}`;
