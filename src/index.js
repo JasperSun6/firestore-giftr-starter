@@ -17,6 +17,7 @@ import {
   onSnapshot,
   setDoc,
   query,
+  where,
 } from "firebase/firestore";
 
 /* Firebase Configurations */
@@ -162,9 +163,9 @@ function attemptLogin() {
 const peopleSnapshot = () => {
   const ref = collection(db, "people");
   const userRef = doc(db, "users", getAuth().currentUser.uid);
-  const query = query(userRef, where("people", "==", ref));
+  const q = query(ref, where("owner", "==", userRef));
 
-  onSnapshot(query, (snapshot) => {
+  onSnapshot(q, (snapshot) => {
     people = [];
     snapshot.docs.map((doc) => {
       const data = doc.data();
