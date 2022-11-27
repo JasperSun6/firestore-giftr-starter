@@ -15,6 +15,8 @@ import {
   updateDoc,
   deleteDoc,
   onSnapshot,
+  setDoc,
+  query,
 } from "firebase/firestore";
 
 /* Firebase Configurations */
@@ -141,6 +143,15 @@ function attemptLogin() {
       const token = credential.accessToken;
       // The signed-in user info.
       const user = result.user;
+      console.log(user.uid);
+      const ref = collection(db, "users");
+      setDoc(
+        doc(ref, user.uid),
+        {
+          displayName: user.displayName,
+        },
+        { merge: true }
+      );
     })
     .catch((error) => {
       console.log(error);
@@ -149,7 +160,11 @@ function attemptLogin() {
 
 //people onSnapShot
 const peopleSnapshot = () => {
-  onSnapshot(collection(db, "people"), (snapshot) => {
+  const ref = collection(db, "people");
+  const userRef = doc(db, "users", getAuth().currentUser.uid);
+  const query = query(userRef, where("people", "==", ref));
+
+  onSnapshot(query, (snapshot) => {
     people = [];
     snapshot.docs.map((doc) => {
       const data = doc.data();
@@ -191,7 +206,9 @@ function buildPeople(people) {
     .map((person) => {
       const dob = `${months[person["birth-month"] - 1]} ${person["birth-day"]}`;
       //Use the number of the birth-month less 1 as the index for the months array
-      return `<li data-id="${person.personId}" class="person">
+      return `<li data-id="${person.personId}" data-owner="${
+        getAuth().currentUser.uid
+      }" class="person">
               <p class="name">${person.name}</p>
               <p class="dob">${dob}</p>
               <button id="editPersonBtn">Edit</button>
@@ -284,6 +301,7 @@ async function savePerson(ev) {
     name,
     "birth-month": month,
     "birth-day": day,
+    owner: doc(db, "users", getAuth().currentUser.uid),
   };
   if (ev.target.closest(".add")) {
     const docRef = await addDoc(collection(db, "people"), person);
