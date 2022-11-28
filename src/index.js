@@ -217,6 +217,22 @@ function buildPeople(people) {
             </li>`;
     })
     .join("");
+  selectedPerson();
+}
+
+//Select first person in the list
+function selectedPerson() {
+  if (people.length > 0) {
+    selectedPersonId = people[0].personId;
+  } else {
+    return;
+  }
+
+  document.querySelectorAll(".person").forEach((person) => {
+    if (person.getAttribute("data-id") === selectedPersonId) {
+      person.classList.add("selected");
+    }
+  });
 }
 
 //build idea list
