@@ -17,10 +17,10 @@ html {
 body {
   min-height: 100vh;
 }
-header,
+/* header,
 main {
   padding: 1rem 4rem;
-}
+} */
 header {
   background-color: var(--light-green);
   border-bottom: 0.1rem solid var(--dark-green);
@@ -41,29 +41,33 @@ header h2 {
 }
 main {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+  flex-direction: column;
+  justify-content: space-between;
   align-items: flex-start;
+  gap: 2.5rem;
+  margin: 1rem;
 }
 main > section {
   flex-basis: 50%;
   flex-grow: 1;
   flex-shrink: 1;
 }
+
 section.ideas {
-  min-height: 100vh;
-  padding-left: 1rem;
-  border-left: 1px solid var(--light-green);
+  min-height: 50vh;
+  /* padding-left: 1rem; */
+  border-top: 1px solid var(--light-green);
 }
 section h2 {
   font-size: 2rem;
   color: var(--dark-green);
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 section h2 > button {
-  margin-right: 4rem;
-  padding: 0.1rem 2rem;
+  /* margin-right: 4rem; */
+  /* padding: 0.1rem 2rem; */
   border: 1px solid var(--dark-green);
   background-color: #fff;
   color: var(--dark-green);
@@ -78,7 +82,7 @@ ul {
   list-style: none;
 }
 .person-list li {
-  margin: 0rem 0.75rem 0.5rem 0;
+  margin-bottom: 1rem ;
   padding: 0.9rem 1rem;
   cursor: pointer;
   border-radius: var(--radii);
