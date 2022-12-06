@@ -17,10 +17,6 @@ html {
 body {
   min-height: 100vh;
 }
-/* header,
-main {
-  padding: 1rem 4rem;
-} */
 header {
   background-color: var(--light-green);
   border-bottom: 0.1rem solid var(--dark-green);
@@ -290,8 +286,31 @@ button {
 
  @media screen and (min-width: 900px) {
 
-  main {
-    max-width: 80vw;
+  header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
-  
+
+  header h1, header h2 {
+   margin-left: 1rem;
+  }
+
+
+  main {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    max-width: 80vw;
+    gap: 2.5rem;
+    margin: auto;
+  }
+
+  section.ideas {
+    min-height: 50vh;
+    padding-left: 1rem;
+    border-left: 1px solid var(--light-green);
+    border-top: none;
+  }
  }
