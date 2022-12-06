@@ -293,8 +293,13 @@ button {
     align-items: center;
   }
 
-  header h1, header h2 {
-   margin-left: 1rem;
+  .item{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 80vw;
+    margin: auto;
   }
 
 
