@@ -168,7 +168,8 @@ section.overlay.active {
   display: flex;
   flex-direction: row;
   width: 100vw;
-  height: 100vh;
+  height: 200vh;
+  margin: auto;
   background-color: hsla(0, 0%, 0%, 0.8);
   justify-content: center;
   align-items: center;
@@ -299,7 +300,6 @@ button {
     justify-content: space-between;
     align-items: center;
     max-width: 80vw;
-    margin: auto;
   }
 
 
@@ -317,5 +317,9 @@ button {
     padding-left: 1rem;
     border-left: 1px solid var(--light-green);
     border-top: none;
+  }
+
+  section.overlay.active {
+    height: 100vh;
   }
  }
