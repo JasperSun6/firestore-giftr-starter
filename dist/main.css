@@ -43,10 +43,12 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  align-items: flex-start;
+  /* align-items: center; */
+  max-width: 95vw;
   gap: 2.5rem;
-  margin: 1rem;
+  margin: auto;
 }
+
 main > section {
   flex-basis: 50%;
   flex-grow: 1;
@@ -194,10 +196,10 @@ dialog.active h2 {
 dialog.active p {
   display: flex;
   color:var(--dark-green);
-  margin: 1rem 3rem;
-  justify-content: flex-start;
-  align-items: flex-start;
+  margin: 1rem;
+  align-items: center;
 }
+
 dialog.active label {
   flex-basis: 13ch;
   font-size: 1.2rem;
@@ -205,13 +207,11 @@ dialog.active label {
   font-weight: inherit;
 }
 dialog.active :is(input, button) {
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-family: inherit;
   font-weight: inherit;
 }
 dialog button {
-  margin: 0 2rem;
-  padding: 0.1rem 2rem;
   border: 1px solid var(--dark-green);
   background-color: #fff;
   color: var(--dark-green);
@@ -269,4 +269,29 @@ button {
 
  #btnAddPerson,#btnAddIdea{
   visibility: hidden;
+ }
+
+ @media screen and (min-width: 500px) {
+
+  main {
+    max-width: 90vw;
+  }
+  
+ }
+
+
+ @media screen and (min-width: 768px) {
+
+  main {
+    max-width: 80vw;
+  }
+  
+ }
+
+ @media screen and (min-width: 900px) {
+
+  main {
+    max-width: 80vw;
+  }
+  
  }
